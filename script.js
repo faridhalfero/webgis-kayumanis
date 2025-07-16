@@ -1,37 +1,57 @@
 // Inisialisasi peta
 const map = L.map('map').setView([-0.5, 100.5], 9);
 
-// --- Basemap: Peta Nama Jalan (OpenStreetMap) ---
-const basemapOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors',
-  maxZoom: 19
-}).addTo(map); // Aktif default
+// --- Basemap Layers ---
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map); // aktif default
 
-// --- Basemap: Citra Satelit Esri ---
-const basemapEsri = L.tileLayer(
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+const esriImagery = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
     attribution: 'Tiles © Esri & Contributors',
     maxZoom: 19
   }
 );
 
-// --- Basemap: Esri Streets (3D style) ---
-const basemapEsriStreets = L.tileLayer(
-  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles © Esri & Contributors',
+const esriStreets = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+  {
+    attribution: 'Tiles © Esri Streets',
     maxZoom: 19
+  }
+);
+
+const cartoLight = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {
+    attribution: '&copy; CartoDB',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }
+);
+
+const stamenTerrain = L.tileLayer(
+  'https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg',
+  {
+    attribution: 'Map tiles by Stamen Design',
+    maxZoom: 18
   }
 );
 
 // --- Layer Control ---
 const baseMaps = {
-  "Peta Jalan (OpenStreetMap)": basemapOSM,
-  "Citra Satelit (Esri)": basemapEsri,
-  "Peta Jalan 3D (Esri Streets)": basemapEsriStreets
+  "OpenStreetMap (Jalan)": osm,
+  "Citra Satelit (Esri)": esriImagery,
+  "Peta Jalan Modern (Esri Streets)": esriStreets,
+  "Peta Bersih (Carto Light)": cartoLight,
+  "Topografi (Stamen Terrain)": stamenTerrain
 };
+
 L.control.layers(baseMaps).addTo(map);
 
-// --- Tampilkan Layer GeoJSON ---
+// --- Tampilkan GeoJSON ---
 fetch('Kayumanis.geojson')
   .then(res => res.json())
   .then(data => {
@@ -39,19 +59,3 @@ fetch('Kayumanis.geojson')
       style: {
         color: "#ff6600",
         weight: 2,
-        fillOpacity: 0.4
-      },
-      onEachFeature: function (feature, layer) {
-        let info = "";
-        for (const key in feature.properties) {
-          info += `<strong>${key}</strong>: ${feature.properties[key]}<br>`;
-        }
-        layer.bindPopup(info);
-      }
-    }).addTo(map);
-
-    map.fitBounds(geoLayer.getBounds());
-  })
-  .catch(err => {
-    console.error("Gagal memuat GeoJSON:", err);
-  });
